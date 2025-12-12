@@ -28,7 +28,7 @@
     "@sentry/tracing": "^6.1.0",
     "@types/node": "^14.18.12",
     "axios": "^1.0.0",
-    "bootstrap": "^5.0.0",
+    "bootstrap": "^5.3.8",
     "jquery": "^3.5.1",
     "p-limit": "^3.1.0",
     "popper.js": "^1.16.1"
