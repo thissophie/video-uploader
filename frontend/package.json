@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.1",
-    "@sentry/browser": "^8.0.0",
+    "@sentry/browser": "^8.55.0",
     "@sentry/tracing": "^6.1.0",
     "@types/node": "^14.18.12",
     "axios": "^1.0.0",
