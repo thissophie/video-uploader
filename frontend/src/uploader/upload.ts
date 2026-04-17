@@ -39,7 +39,8 @@ export const upload = async (
   debug: boolean,
   token: string,
   file: File,
-  episode: number,
+  episode: number | null,
+  draft: number | null,
   onProgress: (loadedBytes: number) => void,
 ): Promise<void> => {
   const partCounts = Math.ceil(file.size / FILE_CHUNK_SIZE);
@@ -50,7 +51,7 @@ export const upload = async (
     level: Severity.Info,
   });
 
-  const uploadIdResponse = await getUploadId(token, file.name, episode);
+  const uploadIdResponse = await getUploadId(token, file.name, episode, draft);
 
   if (isAPIError(uploadIdResponse)) {
     throw new Error(uploadIdResponse.error);

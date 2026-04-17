@@ -56,11 +56,26 @@ const setup = async () => {
     const params = new URLSearchParams(window.location.search);
     const debug = params.has('debug');
     const presenter = params.get('presenter');
-    const episode = parseInt(params.get('episode'), 10);
+
+    // `episode` is optional. The presenter portal's "Other Uploads" form
+    // lets presenters upload sponsor ads / promo clips that aren't
+    // attached to a specific scheduled talk. When it isn't provided (or
+    // is malformed) we skip the presentation lookup entirely.
+    const rawEpisode = params.get('episode');
+    const parsedEpisode = rawEpisode === null ? NaN : parseInt(rawEpisode, 10);
+    const episode: number | null = Number.isFinite(parsedEpisode) ? parsedEpisode : null;
+
+    // `draft` is the pk of a pre-created VirtualEventPrerecordedFile row
+    // that this upload should fill in. Forwarded to the portal as
+    // `draft_pk` at finish-upload time. Optional — legacy talk-prerecord
+    // flow doesn't use drafts.
+    const rawDraft = params.get('draft');
+    const parsedDraft = rawDraft === null ? NaN : parseInt(rawDraft, 10);
+    const draft: number | null = Number.isFinite(parsedDraft) ? parsedDraft : null;
 
     addBreadcrumb({
       category: 'setup',
-      message: `Looking for ${presenter} episode ${episode}. Debug is ${debug ? 'on' : 'off'}`,
+      message: `Looking for ${presenter} episode ${episode ?? 'none'} draft ${draft ?? 'none'}. Debug is ${debug ? 'on' : 'off'}`,
       level: Severity.Info,
     });
 
@@ -75,14 +90,22 @@ const setup = async () => {
       throw new Error(`Could not obtain presenter (${presenter}) details: ${portalDetails.error}`);
     }
 
-    const presentation = portalDetails.presentations.find(({ pk }) => pk === episode);
-
-    if (!presentation) {
-      throw new Error(`Could not find episode: ${episode}`);
-    }
-
     presenterInput.value = portalDetails.name;
-    presentationTitle.value = presentation.name;
+
+    if (episode === null) {
+      // "Other" upload — no scheduled talk to look up. The presenter
+      // already picked the file's kind/title in the portal, so show a
+      // generic label here.
+      presentationTitle.value = 'Other upload';
+    } else {
+      const presentation = portalDetails.presentations.find(({ pk }) => pk === episode);
+
+      if (!presentation) {
+        throw new Error(`Could not find episode: ${episode}`);
+      }
+
+      presentationTitle.value = presentation.name;
+    }
 
     const uploadFile = createUploadFile(
       progressBar,
@@ -121,7 +144,7 @@ const setup = async () => {
         level: Severity.Info,
       });
 
-      await uploadFile(file, episode);
+      await uploadFile(file, episode, draft);
     };
 
     formEl.addEventListener(

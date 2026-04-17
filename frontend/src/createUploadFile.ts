@@ -11,12 +11,12 @@ export const createUploadFile = (
   setSpinnerHidden: SetHidden,
   debug: boolean,
   token: string,
-) => async (file: File, episode: number): Promise<void> => {
+) => async (file: File, episode: number | null, draft: number | null): Promise<void> => {
   try {
     setSpinnerHidden(false);
     progressBar.setHidden(false);
 
-    await upload(debug, token, file, episode, (loadedBytes) => {
+    await upload(debug, token, file, episode, draft, (loadedBytes) => {
       if (debug) {
         console.log('Updating progress...', loadedBytes, file.size, (loadedBytes / file.size) * 100);
       }
@@ -32,7 +32,8 @@ export const createUploadFile = (
     }
     Sentry.captureException(error, {
       tags: {
-        episode: `${episode}`,
+        episode: episode === null ? 'null' : `${episode}`,
+        draft: draft === null ? 'null' : `${draft}`,
         fileName: file.name,
       },
     });
