@@ -106,7 +106,7 @@ Resources:
         S3Key: !Ref BackendLambdaS3Key
       Handler: src/index.presenterInfo
       Role: !GetAtt "BackendLambdaRole.Arn"
-      Runtime: "nodejs12.x"
+      Runtime: "nodejs20.x"
       Timeout: 25
       Environment:
         Variables:
@@ -123,7 +123,7 @@ Resources:
         S3Key: !Ref BackendLambdaS3Key
       Handler: src/index.getStream
       Role: !GetAtt "BackendLambdaRole.Arn"
-      Runtime: "nodejs12.x"
+      Runtime: "nodejs20.x"
       Timeout: 25
       Environment:
         Variables:
@@ -140,7 +140,7 @@ Resources:
         S3Key: !Ref BackendLambdaS3Key
       Handler: src/index.beginUpload
       Role: !GetAtt "BackendLambdaRole.Arn"
-      Runtime: "nodejs12.x"
+      Runtime: "nodejs20.x"
       Timeout: 25
       Environment:
         Variables:
@@ -157,7 +157,7 @@ Resources:
         S3Key: !Ref BackendLambdaS3Key
       Handler: src/index.getUploadURL
       Role: !GetAtt "BackendLambdaRole.Arn"
-      Runtime: "nodejs12.x"
+      Runtime: "nodejs20.x"
       Timeout: 25
       Environment:
         Variables:
@@ -174,7 +174,7 @@ Resources:
         S3Key: !Ref BackendLambdaS3Key
       Handler: src/index.finishUpload
       Role: !GetAtt "BackendLambdaRole.Arn"
-      Runtime: "nodejs12.x"
+      Runtime: "nodejs20.x"
       Timeout: 25
       Environment:
         Variables:
@@ -191,7 +191,7 @@ Resources:
         S3Key: !Ref BackendLambdaS3Key
       Handler: src/index.abandonUpload
       Role: !GetAtt "BackendLambdaRole.Arn"
-      Runtime: "nodejs12.x"
+      Runtime: "nodejs20.x"
       Timeout: 25
       Environment:
         Variables:
