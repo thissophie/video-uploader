@@ -5,8 +5,7 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css'; // Import precompiled Bootstrap css
 import './css/frontend.css';
 
-import { addBreadcrumb, captureException, init, Severity } from '@sentry/browser';
-import { Integrations } from '@sentry/tracing';
+import { addBreadcrumb, browserTracingIntegration, captureException, init } from '@sentry/browser';
 
 import { createShowAlert } from './createShowAlert';
 import { createProgressBar } from './ProgressBar';
@@ -19,7 +18,7 @@ console.log('process.env.SENTRY_DSN', process.env.SENTRY_DSN);
 if (process.env.SENTRY_DSN) {
   init({
     dsn: process.env.SENTRY_DSN,
-    integrations: [new Integrations.BrowserTracing()],
+    integrations: [browserTracingIntegration()],
     tracesSampleRate: 0,
     release: `video-uploader@${process.env.RELEASE}`,
     environment: location.host,
@@ -76,7 +75,7 @@ const setup = async () => {
     addBreadcrumb({
       category: 'setup',
       message: `Looking for ${presenter} episode ${episode ?? 'none'} draft ${draft ?? 'none'}. Debug is ${debug ? 'on' : 'off'}`,
-      level: Severity.Info,
+      level: 'info',
     });
 
     const portalDetails = await getPortalDetails(presenter);
@@ -123,7 +122,7 @@ const setup = async () => {
         addBreadcrumb({
           category: 'file',
           message: 'User picked a file',
-          level: Severity.Info,
+          level: 'info',
         });
       }
     });
@@ -141,7 +140,7 @@ const setup = async () => {
       addBreadcrumb({
         category: 'file',
         message: 'Upload file...',
-        level: Severity.Info,
+        level: 'info',
       });
 
       await uploadFile(file, episode, draft);

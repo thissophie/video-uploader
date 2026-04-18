@@ -1,5 +1,5 @@
-import { addBreadcrumb, Severity } from '@sentry/browser';
-import axios from 'axios';
+import { addBreadcrumb } from '@sentry/browser';
+import axios, { AxiosProgressEvent } from 'axios';
 import { Part } from './apiCalls';
 
 export const uploadPart = async (
@@ -16,11 +16,11 @@ export const uploadPart = async (
   addBreadcrumb({
     category: 'uploadPart',
     message: `Uploading part ${partNumber}`,
-    level: Severity.Info,
+    level: 'info',
   });
 
   const output = await axios.put(uploadUrl, blob, {
-    onUploadProgress: (loadedBytes: ProgressEvent) => onProgress(loadedBytes.loaded),
+    onUploadProgress: (progressEvent: AxiosProgressEvent) => onProgress(progressEvent.loaded),
   });
 
   const etag = (output.headers as { etag: string }).etag;
@@ -29,7 +29,7 @@ export const uploadPart = async (
     addBreadcrumb({
       category: 'uploadPart',
       message: `Uploading part ${partNumber} returned headers ${JSON.stringify(output.headers)}`,
-      level: Severity.Info,
+      level: 'info',
     });
 
     throw new Error(`No etag returned with part ${partNumber}.`);

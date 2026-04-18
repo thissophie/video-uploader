@@ -6,7 +6,7 @@ export interface PartProgress {
 
 import pLimit from 'p-limit';
 import { abandonUpload, completeUpload, getPartURL, getUploadId, isAPIError } from './apiCalls';
-import { addBreadcrumb, Severity } from '@sentry/browser';
+import { addBreadcrumb } from '@sentry/browser';
 
 const FILE_CHUNK_SIZE = 10_000_000;
 
@@ -48,7 +48,7 @@ export const upload = async (
   addBreadcrumb({
     category: 'upload',
     message: 'Get Upload ID',
-    level: Severity.Info,
+    level: 'info',
   });
 
   const uploadIdResponse = await getUploadId(token, file.name, episode, draft);
@@ -91,7 +91,7 @@ export const upload = async (
     addBreadcrumb({
       category: 'upload',
       message: `Uploaded parts ${completedParts.length}`,
-      level: Severity.Info,
+      level: 'info',
     });
 
     const completeUploadResponse = await completeUpload(uploadToken, completedParts);
@@ -100,7 +100,7 @@ export const upload = async (
       addBreadcrumb({
         category: 'upload',
         message: `Error completing the upload: ${completeUploadResponse.error}`,
-        level: Severity.Fatal,
+        level: 'fatal',
       });
       throw new Error('Unable to complete upload.');
     }
