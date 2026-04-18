@@ -5,8 +5,7 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css'; // Import precompiled Bootstrap css
 import './css/frontend.css';
 
-import { addBreadcrumb, captureException, init, Severity } from '@sentry/browser';
-import { Integrations } from '@sentry/tracing';
+import { addBreadcrumb, browserTracingIntegration, captureException, init } from '@sentry/browser';
 
 import { createShowAlert } from './createShowAlert';
 import { createProgressBar } from './ProgressBar';
@@ -14,12 +13,22 @@ import { setHidden, SetHidden } from './setHidden';
 import { createUploadFile } from './createUploadFile';
 import { getPortalDetails, isAPIError } from './uploader/apiCalls';
 
+// Parse an integer URL parameter, returning null when the parameter is
+// absent, empty, or non-numeric. Centralises the nullable-int parsing for
+// optional query params like ?episode= and ?draft=.
+const parseOptionalIntParam = (params: URLSearchParams, key: string): number | null => {
+  const raw = params.get(key);
+  if (raw === null) return null;
+  const parsed = parseInt(raw, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 console.log('process.env.SENTRY_DSN', process.env.SENTRY_DSN);
 
 if (process.env.SENTRY_DSN) {
   init({
     dsn: process.env.SENTRY_DSN,
-    integrations: [new Integrations.BrowserTracing()],
+    integrations: [browserTracingIntegration()],
     tracesSampleRate: 0,
     release: `video-uploader@${process.env.RELEASE}`,
     environment: location.host,
@@ -56,12 +65,23 @@ const setup = async () => {
     const params = new URLSearchParams(window.location.search);
     const debug = params.has('debug');
     const presenter = params.get('presenter');
-    const episode = parseInt(params.get('episode'), 10);
+
+    // `episode` is the pk of the scheduled talk this upload is for. Optional:
+    // the presenter portal's "Other Uploads" form lets presenters upload
+    // sponsor ads / promo clips that aren't attached to a specific talk.
+    // When absent (or malformed) we skip the presentation lookup entirely.
+    //
+    // `draft` is the pk of a pre-created VirtualEventPrerecordedFile row that
+    // this upload should fill in. Forwarded to the portal as `draft_pk` at
+    // finish-upload time. Optional — legacy talk-prerecord flow doesn't use
+    // drafts.
+    const episode = parseOptionalIntParam(params, 'episode');
+    const draft = parseOptionalIntParam(params, 'draft');
 
     addBreadcrumb({
       category: 'setup',
-      message: `Looking for ${presenter} episode ${episode}. Debug is ${debug ? 'on' : 'off'}`,
-      level: Severity.Info,
+      message: `Looking for ${presenter} episode ${episode ?? 'none'} draft ${draft ?? 'none'}. Debug is ${debug ? 'on' : 'off'}`,
+      level: 'info',
     });
 
     const portalDetails = await getPortalDetails(presenter);
@@ -75,14 +95,22 @@ const setup = async () => {
       throw new Error(`Could not obtain presenter (${presenter}) details: ${portalDetails.error}`);
     }
 
-    const presentation = portalDetails.presentations.find(({ pk }) => pk === episode);
-
-    if (!presentation) {
-      throw new Error(`Could not find episode: ${episode}`);
-    }
-
     presenterInput.value = portalDetails.name;
-    presentationTitle.value = presentation.name;
+
+    if (episode === null) {
+      // "Other" upload — no scheduled talk to look up. The presenter
+      // already picked the file's kind/title in the portal, so show a
+      // generic label here.
+      presentationTitle.value = 'Other upload';
+    } else {
+      const presentation = portalDetails.presentations.find(({ pk }) => pk === episode);
+
+      if (!presentation) {
+        throw new Error(`Could not find episode: ${episode}`);
+      }
+
+      presentationTitle.value = presentation.name;
+    }
 
     const uploadFile = createUploadFile(
       progressBar,
@@ -100,7 +128,7 @@ const setup = async () => {
         addBreadcrumb({
           category: 'file',
           message: 'User picked a file',
-          level: Severity.Info,
+          level: 'info',
         });
       }
     });
@@ -118,10 +146,10 @@ const setup = async () => {
       addBreadcrumb({
         category: 'file',
         message: 'Upload file...',
-        level: Severity.Info,
+        level: 'info',
       });
 
-      await uploadFile(file, episode);
+      await uploadFile(file, episode, draft);
     };
 
     formEl.addEventListener(

@@ -22,8 +22,12 @@ export const apiCall = async <T>(remoteURL: string, body: unknown, token?: strin
 };
 
 export type UploadIdResponse = APIError | (APIOK & { token: string });
-export const getUploadId = async (token: string, fileName: string, episode: number): Promise<UploadIdResponse> =>
-  apiCall('/begin', { fileName, episode }, token);
+export const getUploadId = async (
+  token: string,
+  fileName: string,
+  episode: number | null,
+  draft: number | null,
+): Promise<UploadIdResponse> => apiCall('/begin', { fileName, episode, draft }, token);
 
 export type GetPartURLResponse = APIError | (APIOK & { partURL: string });
 export const getPartURL = (token: string, partNumber: number): Promise<GetPartURLResponse> =>

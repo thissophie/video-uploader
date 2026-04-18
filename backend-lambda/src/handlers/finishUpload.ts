@@ -67,6 +67,7 @@ export const finishUpload: APIGatewayProxyHandlerV2 = catchErrors(async (event, 
         ETag,
         PartsCount,
       },
+      decodedToken.draft ?? null,
     );
 
     return response({ ok: true });

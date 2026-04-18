@@ -1,7 +1,13 @@
 /** @see {isBeginBody} ts-auto-guard:type-guard */
 export interface BeginBody {
-  episode: number;
+  // `null` when the presenter portal is uploading an "other" file
+  // (sponsor ad, promo clip, ...) that isn't linked to a scheduled talk.
+  episode: number | null;
   fileName: string;
+  // Primary key of a pre-created VirtualEventPrerecordedFile draft row.
+  // Forwarded to the portal as `draft_pk` so the row is filled in place
+  // instead of a duplicate being created. Optional for backwards compat.
+  draft?: number | null;
 }
 
 /** @see {isUploadURLBody} ts-auto-guard:type-guard */
@@ -47,5 +53,6 @@ export interface DecodedUploadJWT {
   sub: string;
   objectName: string;
   uuid: string;
-  ep: number;
+  ep: number | null;
+  draft?: number | null;
 }

@@ -39,15 +39,29 @@ export const beginUpload: APIGatewayProxyHandlerV2 = catchErrors(async (event) =
     return accessDenied();
   }
 
-  const presentation = presenterInfo.value.presentations.find((presentation) => presentation.pk === body.episode);
-  if (presentation === undefined) {
-    return invalidRequest();
+  // `episode` is nullable: the presenter portal allows "other" uploads
+  // (sponsor ads, promo clips, etc.) that aren't tied to a scheduled talk.
+  // When it is provided, it must match one of the presenter's talks.
+  let presentationSlug: string;
+  let episodeMetadata: string;
+  if (body.episode === null || body.episode === undefined) {
+    presentationSlug = 'other';
+    episodeMetadata = '';
+  } else {
+    const presentation = presenterInfo.value.presentations.find(
+      (presentation) => presentation.pk === body.episode,
+    );
+    if (presentation === undefined) {
+      return invalidRequest();
+    }
+    presentationSlug = presentation.slug;
+    episodeMetadata = `${presentation.pk}`;
   }
 
   const version = Date.now();
   const presenterName = sanitizeFileNames(presenterInfo.value.name);
 
-  const objectName = `${presenterName}/${presentation.slug}-${version}${extname(body.fileName)}`;
+  const objectName = `${presenterName}/${presentationSlug}-${version}${extname(body.fileName)}`;
 
   const { UploadId } = await client
     .createMultipartUpload({
@@ -56,7 +70,7 @@ export const beginUpload: APIGatewayProxyHandlerV2 = catchErrors(async (event) =
       Metadata: {
         presenterUuid: presenterInfo.value.uuid,
         presenterName: presenterInfo.value.name.normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
-        episode: `${presentation.pk}`,
+        episode: episodeMetadata,
       },
     })
     .promise();
@@ -70,7 +84,8 @@ export const beginUpload: APIGatewayProxyHandlerV2 = catchErrors(async (event) =
         sub: UploadId,
         objectName: objectName,
         uuid: presenterInfo.value.uuid,
-        ep: body.episode,
+        ep: body.episode ?? null,
+        draft: body.draft ?? null,
       },
       jwtPrivateKey,
       {
