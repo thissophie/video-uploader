@@ -33,21 +33,21 @@ export const notifyPortalUploadFinished = async (
   // `draft_pk` only when the portal handed us one on the way in — that's
   // how it matches the upload back to the pre-created draft row instead
   // of creating a duplicate.
-  const body: Record<string, unknown> = {
+  const payload: Record<string, unknown> = {
     presenter,
     episode,
     prerecord_url: prerecordUrl,
     prerecord_payload: JSON.stringify(prerecordPayload),
   };
   if (draft !== null && draft !== undefined) {
-    body.draft_pk = draft;
+    payload.draft_pk = draft;
   }
   const portalRequest = await fetch(`${portal}/upload/`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
   });
 
   if (!(portalRequest.status >= 200 && portalRequest.status < 300)) {
