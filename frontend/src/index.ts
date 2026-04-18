@@ -13,6 +13,16 @@ import { setHidden, SetHidden } from './setHidden';
 import { createUploadFile } from './createUploadFile';
 import { getPortalDetails, isAPIError } from './uploader/apiCalls';
 
+// Parse an integer URL parameter, returning null when the parameter is
+// absent, empty, or non-numeric. Centralises the nullable-int parsing for
+// optional query params like ?episode= and ?draft=.
+const parseOptionalIntParam = (params: URLSearchParams, key: string): number | null => {
+  const raw = params.get(key);
+  if (raw === null) return null;
+  const parsed = parseInt(raw, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 console.log('process.env.SENTRY_DSN', process.env.SENTRY_DSN);
 
 if (process.env.SENTRY_DSN) {
@@ -56,21 +66,17 @@ const setup = async () => {
     const debug = params.has('debug');
     const presenter = params.get('presenter');
 
-    // `episode` is optional. The presenter portal's "Other Uploads" form
-    // lets presenters upload sponsor ads / promo clips that aren't
-    // attached to a specific scheduled talk. When it isn't provided (or
-    // is malformed) we skip the presentation lookup entirely.
-    const rawEpisode = params.get('episode');
-    const parsedEpisode = rawEpisode === null ? NaN : parseInt(rawEpisode, 10);
-    const episode: number | null = Number.isFinite(parsedEpisode) ? parsedEpisode : null;
-
-    // `draft` is the pk of a pre-created VirtualEventPrerecordedFile row
-    // that this upload should fill in. Forwarded to the portal as
-    // `draft_pk` at finish-upload time. Optional — legacy talk-prerecord
-    // flow doesn't use drafts.
-    const rawDraft = params.get('draft');
-    const parsedDraft = rawDraft === null ? NaN : parseInt(rawDraft, 10);
-    const draft: number | null = Number.isFinite(parsedDraft) ? parsedDraft : null;
+    // `episode` is the pk of the scheduled talk this upload is for. Optional:
+    // the presenter portal's "Other Uploads" form lets presenters upload
+    // sponsor ads / promo clips that aren't attached to a specific talk.
+    // When absent (or malformed) we skip the presentation lookup entirely.
+    //
+    // `draft` is the pk of a pre-created VirtualEventPrerecordedFile row that
+    // this upload should fill in. Forwarded to the portal as `draft_pk` at
+    // finish-upload time. Optional — legacy talk-prerecord flow doesn't use
+    // drafts.
+    const episode = parseOptionalIntParam(params, 'episode');
+    const draft = parseOptionalIntParam(params, 'draft');
 
     addBreadcrumb({
       category: 'setup',
