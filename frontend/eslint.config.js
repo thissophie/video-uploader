@@ -1,3 +1,4 @@
+const path = require('node:path');
 const typescriptEslint = require('@typescript-eslint/eslint-plugin');
 const prettierPlugin = require('eslint-plugin-prettier');
 const prettierConfig = require('eslint-config-prettier');
@@ -6,7 +7,7 @@ const typedRecommendedConfig = typescriptEslint.configs[
   'flat/recommended-type-checked'
 ].map((config) => ({
   ...config,
-  files: ['src/**/*.ts'],
+  files: config.files ?? ['src/**/*.ts'],
 }));
 
 module.exports = [
@@ -21,7 +22,8 @@ module.exports = [
     },
     languageOptions: {
       parserOptions: {
-        project: './tsconfig.json',
+        project: path.join(__dirname, 'tsconfig.json'),
+        tsconfigRootDir: __dirname,
         ecmaVersion: 2018,
         sourceType: 'module',
       },
