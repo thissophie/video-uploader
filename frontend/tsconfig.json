@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
-    "lib": ["es5", "es2015.promise", "dom", "es2015"],
+    "lib": ["es2020", "dom"],
     "module": "commonjs",
     "target": "es6",
     "outDir": "dist",
     "rootDir": ".",
     "sourceMap": true,
     "strict": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["node"]
   },
   "include": [
       "src/**/*.ts"
