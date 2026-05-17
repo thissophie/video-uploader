@@ -1,5 +1,4 @@
 import { isVeypearResponse } from './types.guard';
-import fetch from 'node-fetch';
 import { VeypearResponse } from './types';
 import { HTTPFailure } from './helpers/http-failure';
 import { failure, Result, success } from './helpers/result';
