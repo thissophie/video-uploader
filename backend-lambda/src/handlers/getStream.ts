@@ -35,9 +35,9 @@ export const getStream: APIGatewayProxyHandlerV2 = catchErrors(async (event, con
     return notFound();
   }
 
-  const { Video } = new Mux(muxTokenId, muxTokenSecret);
+  const mux = new Mux({ tokenId: muxTokenId, tokenSecret: muxTokenSecret });
 
-  const streams = await Video.LiveStreams.list({ limit: 10, page: 0 });
+  const streams = (await mux.video.liveStreams.list({ limit: 10, page: 0 })).data;
 
   const stream = streams.find(({ status }) => status === 'active');
 
